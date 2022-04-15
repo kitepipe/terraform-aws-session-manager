@@ -25,7 +25,7 @@ resource "aws_cloudwatch_log_group" "session_manager_log_group" {
 }
 
 resource "aws_ssm_document" "session_manager_prefs" {
-  name            = "SSM-SessionManagerRunShell"
+  name            = "SSM-SessionManagerRunShell-${var.environment_name}-${var.customer_name}"
   document_type   = "Session"
   document_format = "JSON"
   tags            = var.tags

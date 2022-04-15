@@ -128,7 +128,7 @@ data "aws_iam_policy_document" "ssm_s3_cwl_access" {
 }
 
 resource "aws_iam_policy" "ssm_s3_cwl_access" {
-  name   = "ssm_s3_cwl_access-${local.region}"
+  name   = "ssm_s3_cwl_access-${local.region}-${var.environment_name}-${var.customer_name}"
   path   = "/"
   policy = data.aws_iam_policy_document.ssm_s3_cwl_access.json
 }

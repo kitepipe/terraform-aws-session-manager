@@ -103,3 +103,13 @@ variable "windows_shell_profile" {
   default     = ""
   type        = string
 }
+
+variable "customer_name" {
+  description = "The Kitepipe defined string used to denote the unique managed services customer"
+  type        = string # don't use underscores
+}
+
+variable "environment_name" {
+  description = "The Kitepipe defined string used to denote the unique managed services customer's environment"
+  type        = string
+}
