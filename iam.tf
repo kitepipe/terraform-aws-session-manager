@@ -114,6 +114,16 @@ data "aws_iam_policy_document" "ssm_s3_cwl_access" {
   }
 
   statement {
+    sid = "EC2InstanceMetadataAccess"
+
+    actions = [
+      "ec2:Describe*",
+    ]
+
+    resources = ["*"]
+  }
+
+  statement {
     sid = "KMSEncryptionForSessionManager"
 
     actions = [
