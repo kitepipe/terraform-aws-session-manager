@@ -21,6 +21,12 @@ resource "aws_cloudwatch_log_group" "session_manager_log_group" {
   retention_in_days = var.cloudwatch_logs_retention
   kms_key_id        = aws_kms_key.ssmkey.arn
 
+  lifecycle {
+    ignore_changes = [
+      retention_in_days,
+    ]
+  }
+
   tags = var.tags
 }
 
