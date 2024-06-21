@@ -97,6 +97,52 @@ data "aws_iam_policy_document" "ssm_s3_cwl_access" {
     ]
   }
 
+  dynamic "statement" {
+      for_each = length(var.s3_disk_connector_directories) > 0 ? [1] : []
+      content {
+      sid = "S3BucketAccessForDiskConnectorBucket"
+
+      actions = [
+        "s3:ListBucket",
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ]
+
+      resources = [
+        "arn:aws:s3:::${lower("s3-disk-connector-${var.customer_name}-${var.environment_name}")}",
+        "arn:aws:s3:::${lower("s3-disk-connector-${var.customer_name}-${var.environment_name}")}/*"
+      ]
+
+      condition {
+        test     = "Bool"
+        variable = "aws:SecureTransport"
+        values   = ["true"]
+      }
+    }
+  }
+
+  statement {
+    sid = "AllowKMS"
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey",
+      "kms:Encrypt",
+      "kms:GenerateDataKey*",
+      "kms:ReEncrypt*"
+    ]
+    resources = "*"
+    condition {
+      test     = "StringEquals"
+      variable = "kms:ViaService"
+      values   = ["s3.${var.region}.amazonaws.com"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "kms:CallerAccount"
+      values   = ["${data.aws_caller_identity.current.account_id}"]
+    }
+  }
 
   # A custom policy for CloudWatch Logs access
   # https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/permissions-reference-cwl.html

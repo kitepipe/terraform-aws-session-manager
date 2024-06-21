@@ -113,3 +113,14 @@ variable "environment_name" {
   description = "The Kitepipe defined string used to denote the unique managed services customer's environment"
   type        = string
 }
+
+variable "s3_disk_connector_directories" {
+  description = "Pre-created directories in S3 bucket for Boomi disk connector support"
+  type        = list(any)
+  default     = []
+}
+
+variable "region" {
+  description = "AWS Region string"
+  type        = string
+}
