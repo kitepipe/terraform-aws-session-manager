@@ -131,7 +131,7 @@ data "aws_iam_policy_document" "ssm_s3_cwl_access" {
       "kms:GenerateDataKey*",
       "kms:ReEncrypt*"
     ]
-    resources = "*"
+    resources = ["*"]
     condition {
       test     = "StringEquals"
       variable = "kms:ViaService"
