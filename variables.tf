@@ -124,3 +124,8 @@ variable "region" {
   description = "AWS Region string"
   type        = string
 }
+
+variable "route53_zone_id" {
+  description = "Route 53 Zone ID for IAM instance profile"
+  type        = string
+}

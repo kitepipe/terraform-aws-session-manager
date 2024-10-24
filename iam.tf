@@ -191,6 +191,16 @@ data "aws_iam_policy_document" "ssm_s3_cwl_access" {
 
     resources = [aws_kms_key.ssmkey.arn]
   }
+
+  statement {
+    sid = "Route53Edit"
+
+    actions = [
+      "route53:ChangeResourceRecordSets",
+    ]
+
+    resources = ["arn:aws:route53:::hostedzone/${var.route53_zone_id}"]
+  }
 }
 
 resource "aws_iam_policy" "ssm_s3_cwl_access" {
