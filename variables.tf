@@ -129,3 +129,13 @@ variable "route53_zone_id" {
   description = "Route 53 Zone ID for IAM instance profile"
   type        = string
 }
+
+variable "external_id" {
+  description = "Customer AWS IAM Role External ID"
+  type        = string
+}
+
+variable "assume_profile_name" {
+  description = "The name of the IAM role to assume for current AWS provider auth"
+  type        = string
+}
