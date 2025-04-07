@@ -191,7 +191,7 @@ data "aws_iam_policy_document" "ssm_s3_cwl_access" {
       "kms:Encrypt",
     ]
 
-    resources = [aws_kms_key.ssmkey.arn]
+    resources = [(var.init_env) ? aws_kms_key.ssmkey[0].arn : "arn:aws:kms:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:key/${data.aws_ssm_parameter.ssm_session_kms_key_id[0].value}"]
   }
 
   statement {

@@ -3,7 +3,9 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 data "aws_partition" "current" {}
+
 resource "aws_kms_key" "ssmkey" {
+  count                   = var.init_env ? 1 : 0
   description             = "SSM Key"
   deletion_window_in_days = var.kms_key_deletion_window
   enable_key_rotation     = true
@@ -12,14 +14,28 @@ resource "aws_kms_key" "ssmkey" {
 }
 
 resource "aws_kms_alias" "ssmkey" {
+  count         = var.init_env ? 1 : 0
   name_prefix   = "${var.kms_key_alias}-"
-  target_key_id = aws_kms_key.ssmkey.key_id
+  target_key_id = aws_kms_key.ssmkey[0].key_id
+}
+
+resource "aws_ssm_parameter" "ssmkey" {
+  count = var.init_env ? 1 : 0
+  name  = "_ssm_session_kms_key_id"
+  type  = "String"
+  value = aws_kms_key.ssmkey[0].key_id
+}
+
+data "aws_ssm_parameter" "ssm_session_kms_key_id" {
+  count = var.init_env ? 0 : 1
+  name = "_ssm_session_kms_key_id"
 }
 
 resource "aws_cloudwatch_log_group" "session_manager_log_group" {
-  name_prefix       = "${var.cloudwatch_log_group_name}-"
+  count             = var.init_env ? 1 : 0
+  name_prefix       = "${var.cloudwatch_log_group_name}-${lower(var.customer_name)}-"
   retention_in_days = var.cloudwatch_logs_retention
-  kms_key_id        = aws_kms_key.ssmkey.arn
+  kms_key_id        = (var.init_env) ? aws_kms_key.ssmkey[0].arn : "arn:aws:kms:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:key/${data.aws_ssm_parameter.ssm_session_kms_key_id[0].value}"
 
   lifecycle {
     ignore_changes = [
@@ -30,37 +46,20 @@ resource "aws_cloudwatch_log_group" "session_manager_log_group" {
   tags = var.tags
 }
 
-# resource "aws_ssm_document" "session_manager_prefs" {
-#   name            = "SSM-SessionManagerRunShell-${var.environment_name}-${var.customer_name}"
-#   document_type   = "Session"
-#   document_format = "JSON"
-#   tags            = var.tags
+resource "aws_ssm_parameter" "ssmlogs" {
+  count = var.init_env ? 1 : 0
+  name  = "_ssm_session_cw_log_group_name"
+  type  = "String"
+  value = aws_cloudwatch_log_group.session_manager_log_group[0].name
+}
 
-#   content = jsonencode({
-#     schemaVersion = "1.0"
-#     description   = "Document to hold regional settings for Session Manager"
-#     sessionType   = "Standard_Stream"
-#     inputs = {
-#       s3BucketName                = var.enable_log_to_s3 ? aws_s3_bucket.session_logs_bucket.id : ""
-#       s3KeyPrefix                 = ""
-#       s3EncryptionEnabled         = var.enable_log_to_s3 ? true : false
-#       cloudWatchLogGroupName      = var.enable_log_to_cloudwatch ? aws_cloudwatch_log_group.session_manager_log_group.name : ""
-#       cloudWatchEncryptionEnabled = var.enable_log_to_cloudwatch ? true : false
-#       cloudWatchStreamingEnabled  = var.enable_log_to_cloudwatch ? true : false
-#       idleSessionTimeout          = "60"
-#       maxSessionDuration          = "1000"
-#       kmsKeyId                    = aws_kms_key.ssmkey.key_id
-#       runAsEnabled                = false
-#       runAsDefaultUser            = ""
-#       shellProfile = {
-#         linux   = var.linux_shell_profile == "" ? var.linux_shell_profile : ""
-#         windows = var.windows_shell_profile == "" ? var.windows_shell_profile : ""
-#       }
-#     }
-#   })
-# }
+data "aws_ssm_parameter" "ssm_session_cw_log_group_name" {
+  count = var.init_env ? 0 : 1
+  name = "_ssm_session_cw_log_group_name"
+}
 
 resource "null_resource" "update_ssm_document" {
+  count = var.init_env ? 1 : 0
   provisioner "local-exec" {
     command = <<-EOT
       #!/bin/bash
@@ -88,10 +87,10 @@ resource "null_resource" "update_ssm_document" {
   "description": "Document to hold regional settings for Session Manager $EPOCH",
   "inputs": {
     "cloudWatchEncryptionEnabled": true,
-    "cloudWatchLogGroupName": "${aws_cloudwatch_log_group.session_manager_log_group.name}",
+    "cloudWatchLogGroupName": "${(var.init_env) ? aws_cloudwatch_log_group.session_manager_log_group[0].name : data.aws_ssm_parameter.ssm_session_cw_log_group_name[0].value}",
     "cloudWatchStreamingEnabled": true,
     "idleSessionTimeout": "60",
-    "kmsKeyId": "${aws_kms_key.ssmkey.key_id}",
+    "kmsKeyId": "${(var.init_env) ? aws_kms_key.ssmkey[0].arn : "arn:aws:kms:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:key/${data.aws_ssm_parameter.ssm_session_kms_key_id[0].value}"}",
     "maxSessionDuration": "1000",
     "runAsDefaultUser": "",
     "runAsEnabled": false,
