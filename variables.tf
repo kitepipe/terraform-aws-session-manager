@@ -139,3 +139,8 @@ variable "assume_profile_name" {
   description = "The name of the IAM role to assume for current AWS provider auth"
   type        = string
 }
+
+variable "init_env" {
+  description = "Indicator if this is the first env within the current AWS account where this module is being run"
+  type        = bool
+}
