@@ -106,7 +106,7 @@ resource "null_resource" "update_ssm_document" {
   "sessionType": "Standard_Stream"
 }
 EOF
-)" | jq -r '.DocumentDescription.DocumentVersion')
+)" | jq -r '.DocumentDescription.DocumentVersion // "1"')
 
       echo "New DocumentVersion is: $DOC_VERSION"
 
