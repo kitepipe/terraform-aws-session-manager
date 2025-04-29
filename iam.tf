@@ -35,6 +35,21 @@ data "aws_iam_policy_document" "kms_access" {
 
 }
 
+data "aws_iam_policy_document" "asm_read_access" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:DescribeSecret",
+      "secretsmanager:ListSecrets"
+    ]
+
+    resources = ["*"]
+  }
+}
+
+
 
 #"kmsKeyId": "${aws_kms_key.ssmkey.key_id}",
 #"kmsKeyId": "${aws_kms_key.ssmkey.arn}",
@@ -220,6 +235,18 @@ resource "aws_iam_role_policy_attachment" "SSM-s3-cwl-policy-attach" {
   role       = aws_iam_role.ssm_role.name
   policy_arn = aws_iam_policy.ssm_s3_cwl_access.arn
 }
+
+resource "aws_iam_policy" "asm_read_access" {
+  name        = "ASMReadOnlyPolicy"
+  description = "Read-only access to AWS Secrets Manager"
+  policy      = data.aws_iam_policy_document.asm_read_access.json
+}
+
+resource "aws_iam_role_policy_attachment" "SSM_ASM_read_access" {
+  role       = aws_iam_role.ssm_role.name
+  policy_arn = aws_iam_policy.asm_read_access.arn
+}
+
 
 resource "aws_iam_instance_profile" "ssm_profile" {
   name_prefix = "ssm_profile-"
