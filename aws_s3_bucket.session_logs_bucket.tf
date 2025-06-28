@@ -9,7 +9,7 @@ resource "aws_s3_bucket" "session_logs_bucket" {
 }
 
 resource "aws_s3_bucket_ownership_controls" "session_logs_bucket" {
-  bucket   = aws_s3_bucket.session_logs_bucket.id
+  bucket = aws_s3_bucket.session_logs_bucket.id
   rule {
     object_ownership = "BucketOwnerPreferred"
   }
@@ -20,7 +20,7 @@ resource "aws_s3_bucket_acl" "session_logs_bucket" {
 
   acl = "private"
   depends_on = [
-	  aws_s3_bucket_ownership_controls.session_logs_bucket,
+    aws_s3_bucket_ownership_controls.session_logs_bucket,
   ]
 }
 
@@ -57,6 +57,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "session_logs_bucket" {
       days          = var.log_archive_days
       storage_class = "GLACIER"
     }
+
+    filter {}
 
     expiration {
       days = var.log_expire_days
