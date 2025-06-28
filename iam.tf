@@ -100,8 +100,8 @@ data "aws_iam_policy_document" "ssm_s3_cwl_access" {
   }
 
   dynamic "statement" {
-      for_each = length(var.s3_disk_connector_directories) > 0 ? [1] : []
-      content {
+    for_each = length(var.s3_disk_connector_directories) > 0 ? [1] : []
+    content {
       sid = "S3BucketAccessForDiskConnectorBucket"
 
       actions = [
@@ -191,7 +191,7 @@ data "aws_iam_policy_document" "ssm_s3_cwl_access" {
       "kms:Encrypt",
     ]
 
-    resources = [(var.init_env) ? aws_kms_key.ssmkey[0].arn : "arn:aws:kms:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:key/${data.aws_ssm_parameter.ssm_session_kms_key_id[0].value}"]
+    resources = [(var.init_env) ? aws_kms_key.ssmkey[0].arn : "arn:aws:kms:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:key/${data.aws_ssm_parameter.ssm_session_kms_key_id[0].value}"]
   }
 
   statement {

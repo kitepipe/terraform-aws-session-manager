@@ -28,14 +28,14 @@ resource "aws_ssm_parameter" "ssmkey" {
 
 data "aws_ssm_parameter" "ssm_session_kms_key_id" {
   count = var.init_env ? 0 : 1
-  name = "_ssm_session_kms_key_id"
+  name  = "_ssm_session_kms_key_id"
 }
 
 resource "aws_cloudwatch_log_group" "session_manager_log_group" {
   count             = var.init_env ? 1 : 0
   name_prefix       = "${var.cloudwatch_log_group_name}-${lower(var.customer_name)}-"
   retention_in_days = var.cloudwatch_logs_retention
-  kms_key_id        = (var.init_env) ? aws_kms_key.ssmkey[0].arn : "arn:aws:kms:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:key/${data.aws_ssm_parameter.ssm_session_kms_key_id[0].value}"
+  kms_key_id        = (var.init_env) ? aws_kms_key.ssmkey[0].arn : "arn:aws:kms:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:key/${data.aws_ssm_parameter.ssm_session_kms_key_id[0].value}"
 
   lifecycle {
     ignore_changes = [
@@ -55,7 +55,7 @@ resource "aws_ssm_parameter" "ssmlogs" {
 
 data "aws_ssm_parameter" "ssm_session_cw_log_group_name" {
   count = var.init_env ? 0 : 1
-  name = "_ssm_session_cw_log_group_name"
+  name  = "_ssm_session_cw_log_group_name"
 }
 
 resource "null_resource" "update_ssm_document" {
@@ -90,7 +90,7 @@ resource "null_resource" "update_ssm_document" {
     "cloudWatchLogGroupName": "${(var.init_env) ? aws_cloudwatch_log_group.session_manager_log_group[0].name : data.aws_ssm_parameter.ssm_session_cw_log_group_name[0].value}",
     "cloudWatchStreamingEnabled": true,
     "idleSessionTimeout": "60",
-    "kmsKeyId": "${(var.init_env) ? aws_kms_key.ssmkey[0].arn : "arn:aws:kms:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:key/${data.aws_ssm_parameter.ssm_session_kms_key_id[0].value}"}",
+    "kmsKeyId": "${(var.init_env) ? aws_kms_key.ssmkey[0].arn : "arn:aws:kms:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:key/${data.aws_ssm_parameter.ssm_session_kms_key_id[0].value}"}",
     "maxSessionDuration": "1000",
     "runAsDefaultUser": "",
     "runAsEnabled": false,

@@ -1,10 +1,10 @@
 locals {
-  region  = var.vpc_endpoints_enabled && var.vpc_id != null ? split(":", data.aws_vpc.selected[0].arn)[3] : data.aws_region.current.name
+  region  = var.vpc_endpoints_enabled && var.vpc_id != null ? split(":", data.aws_vpc.selected[0].arn)[3] : data.aws_region.current.region
   subnets = var.vpc_endpoints_enabled ? var.subnet_ids != [] ? var.subnet_ids : data.aws_subnets.selected[0].ids : []
 }
 
 data "aws_subnets" "selected" {
-  count  = var.vpc_endpoints_enabled ? 1 : 0
+  count = var.vpc_endpoints_enabled ? 1 : 0
   filter {
     name   = "vpc-id"
     values = [var.vpc_id]

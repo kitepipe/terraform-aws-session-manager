@@ -12,7 +12,7 @@ resource "aws_s3_bucket" "access_log_bucket" {
 }
 
 resource "aws_s3_bucket_ownership_controls" "access_log_bucket" {
-  bucket   = aws_s3_bucket.access_log_bucket.id
+  bucket = aws_s3_bucket.access_log_bucket.id
   rule {
     object_ownership = "BucketOwnerPreferred"
   }
@@ -23,7 +23,7 @@ resource "aws_s3_bucket_acl" "access_log_bucket" {
 
   acl = "log-delivery-write"
   depends_on = [
-	  aws_s3_bucket_ownership_controls.access_log_bucket,
+    aws_s3_bucket_ownership_controls.access_log_bucket,
   ]
 }
 
@@ -42,7 +42,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "access_log_bucket
 
   rule {
     apply_server_side_encryption_by_default {
-      kms_master_key_id = (var.init_env) ? aws_kms_key.ssmkey[0].arn : "arn:aws:kms:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:key/${data.aws_ssm_parameter.ssm_session_kms_key_id[0].value}"
+      kms_master_key_id = (var.init_env) ? aws_kms_key.ssmkey[0].arn : "arn:aws:kms:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:key/${data.aws_ssm_parameter.ssm_session_kms_key_id[0].value}"
       sse_algorithm     = "aws:kms"
     }
   }
@@ -55,6 +55,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "access_log_bucket" {
   rule {
     id     = "delete_after_X_days"
     status = "Enabled"
+
+    filter {}
 
     expiration {
       days = var.access_log_expire_days
