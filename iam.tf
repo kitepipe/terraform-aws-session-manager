@@ -203,6 +203,17 @@ data "aws_iam_policy_document" "ssm_s3_cwl_access" {
 
     resources = ["arn:aws:route53:::hostedzone/${var.route53_zone_id}"]
   }
+
+  statement {
+    sid = "ALBDescribeTargetGroups"
+
+    actions = [
+      "elasticloadbalancing:DescribeTargetGroups",
+      "elasticloadbalancing:DescribeTargetHealth",
+    ]
+
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_policy" "ssm_s3_cwl_access" {
