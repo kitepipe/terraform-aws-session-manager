@@ -106,7 +106,13 @@ resource "null_resource" "update_ssm_document" {
   "sessionType": "Standard_Stream"
 }
 EOF
-)" | jq -r '.DocumentDescription.DocumentVersion // "1"')
+)" 2>/dev/null | jq -r '.DocumentDescription.DocumentVersion // empty')
+
+      # If update failed or returned empty, abort cleanly
+      if [ -z "$DOC_VERSION" ]; then
+        echo "No SSM document SSM-SessionManagerRunShell found. Aborting."
+        exit 0
+      fi
 
       echo "New DocumentVersion is: $DOC_VERSION"
 
