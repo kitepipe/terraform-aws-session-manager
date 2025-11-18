@@ -39,7 +39,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "session_logs_buck
 
   rule {
     apply_server_side_encryption_by_default {
-      kms_master_key_id = local.should_init ? aws_kms_key.ssmkey[0].arn : data.aws_ssm_parameter.ssm_session_kms_key_id[0].value
+      kms_master_key_id = (var.init_env) ? aws_kms_key.ssmkey[0].arn : data.aws_ssm_parameter.ssm_session_kms_key_id[0].value
       sse_algorithm     = "aws:kms"
     }
   }

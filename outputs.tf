@@ -7,11 +7,11 @@ output "access_log_bucket_name" {
 }
 
 output "cloudwatch_log_group_arn" {
-  value = local.should_init ? aws_cloudwatch_log_group.session_manager_log_group[0].name : data.aws_ssm_parameter.ssm_session_cw_log_group_name[0].value
+  value = (var.init_env) ? aws_cloudwatch_log_group.session_manager_log_group[0].name : data.aws_ssm_parameter.ssm_session_cw_log_group_name[0].value
 }
 
 output "kms_key_arn" {
-  value = local.should_init ? aws_kms_key.ssmkey[0].arn : "arn:aws:kms:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:key/${data.aws_ssm_parameter.ssm_session_kms_key_id[0].value}"
+  value = (var.init_env) ? aws_kms_key.ssmkey[0].arn : "arn:aws:kms:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:key/${data.aws_ssm_parameter.ssm_session_kms_key_id[0].value}"
 }
 
 output "iam_role_arn" {
