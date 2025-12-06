@@ -77,12 +77,8 @@ resource "null_resource" "update_ssm_document" {
       # Find epoch
       export EPOCH=$(date +%s)
 
-      # Run update-document and capture the new DocumentVersion
-      DOC_VERSION=$(aws ssm update-document \
-        --name "SSM-SessionManagerRunShell" \
-        --region "${var.region}" \
-        --document-version "\$LATEST" \
-        --content "$(cat <<EOF
+      # Define the document content
+      DOC_CONTENT=$(cat <<EOF
 {
   "description": "Document to hold regional settings for Session Manager $EPOCH",
   "inputs": {
@@ -106,9 +102,28 @@ resource "null_resource" "update_ssm_document" {
   "sessionType": "Standard_Stream"
 }
 EOF
-)" | jq -r '.DocumentDescription.DocumentVersion // "1"')
+)
 
-      echo "New DocumentVersion is: $DOC_VERSION"
+      # Check if the document exists
+      if aws ssm describe-document --name "SSM-SessionManagerRunShell" --region "${var.region}" > /dev/null 2>&1; then
+        echo "Document exists, updating..."
+        # Run update-document and capture the new DocumentVersion
+        DOC_VERSION=$(aws ssm update-document \
+          --name "SSM-SessionManagerRunShell" \
+          --region "${var.region}" \
+          --document-version "\$LATEST" \
+          --content "$DOC_CONTENT" | jq -r '.DocumentDescription.DocumentVersion // "1"')
+      else
+        echo "Document does not exist, creating..."
+        # Create the document
+        DOC_VERSION=$(aws ssm create-document \
+          --name "SSM-SessionManagerRunShell" \
+          --region "${var.region}" \
+          --document-type "Session" \
+          --content "$DOC_CONTENT" | jq -r '.DocumentDescription.DocumentVersion // "1"')
+      fi
+
+      echo "DocumentVersion is: $DOC_VERSION"
 
       # Set the default version
       aws ssm update-document-default-version \
