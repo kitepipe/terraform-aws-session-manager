@@ -68,7 +68,7 @@ resource "null_resource" "update_ssm_document" {
       # Auth to current AWS TF provider account
       ROLE_ARN="arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.assume_profile_name}"
       echo $ROLE_ARN
-      CREDS=$(aws sts assume-role --role-arn "$ROLE_ARN" --role-session-name tf-session --external-id ${var.external_id})
+      CREDS=$(aws sts assume-role --role-arn "$ROLE_ARN" --role-session-name tf-session --external-id ${var.external_id} --region ${var.region})
       echo $CREDS
       export AWS_ACCESS_KEY_ID=$(echo $CREDS | jq -r '.Credentials.AccessKeyId')
       export AWS_SECRET_ACCESS_KEY=$(echo $CREDS | jq -r '.Credentials.SecretAccessKey')
