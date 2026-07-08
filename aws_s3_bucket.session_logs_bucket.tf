@@ -82,3 +82,45 @@ resource "aws_s3_bucket_public_access_block" "session_logs_bucket" {
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
+
+
+resource "aws_s3_bucket_policy" "session_logs_bucket" {
+  bucket = aws_s3_bucket.session_logs_bucket.id
+
+  depends_on = [
+    aws_s3_bucket_public_access_block.session_logs_bucket,
+  ]
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "DenyHTTPRequests"
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = "s3:*"
+        Resource = [
+          aws_s3_bucket.session_logs_bucket.arn,
+          "${aws_s3_bucket.session_logs_bucket.arn}/*",
+        ]
+        Condition = {
+          Bool = {
+            "aws:SecureTransport" = "false"
+          }
+        }
+      },
+      {
+        Sid       = "DenyUnencryptedObjectUploads"
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = "s3:PutObject"
+        Resource  = "${aws_s3_bucket.session_logs_bucket.arn}/*"
+        Condition = {
+          StringNotEquals = {
+            "s3:x-amz-server-side-encryption" = "aws:kms"
+          }
+        }
+      },
+    ]
+  })
+}
